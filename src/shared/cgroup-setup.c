@@ -173,6 +173,15 @@ int cg_weight_parse(const char *s, uint64_t *ret) {
         return 0;
 }
 
+int cpu_weight_parse(const char *s, uint64_t *ret) {
+        if (streq(s, CGROUP_WEIGHT_IDLE_STR)) {
+                *ret = CGROUP_WEIGHT_IDLE;
+                return 0;
+        }
+
+        return cg_weight_parse(s, ret);
+}
+
 int cg_cpu_shares_parse(const char *s, uint64_t *ret) {
         uint64_t u;
         int r;
@@ -182,6 +191,10 @@ int cg_cpu_shares_parse(const char *s, uint64_t *ret) {
                 return 0;
         }
 
+        if (streq(s, CGROUP_CPU_SHARES_IDLE_STR)) {
+                *ret = CGROUP_CPU_SHARES_IDLE;
+                return 0;
+        }
         r = safe_atou64(s, &u);
         if (r < 0)
                 return r;

@@ -158,7 +158,9 @@ static int bus_print_property(const char *name, const char *expected_value, sd_b
                            (endswith(name, "NSec") && u == UINT64_MAX))
 
                         bus_print_property_value(name, expected_value, flags, "[not set]");
+                else if (STR_IN_SET(name, "CPUWeight", "StartupCPUWeight", "CPUShares", "StartupCPUShares") && u == CGROUP_CPU_IDLE)
 
+                        bus_print_property_value(name, expected_value, flags, "idle");
                 else if ((STR_IN_SET(name, "DefaultMemoryLow", "DefaultMemoryMin", "MemoryLow", "MemoryHigh", "MemoryMax", "MemorySwapMax", "MemoryLimit", "MemoryAvailable") && u == CGROUP_LIMIT_MAX) ||
                          (STR_IN_SET(name, "TasksMax", "DefaultTasksMax") && u == UINT64_MAX) ||
                          (startswith(name, "Limit") && u == UINT64_MAX) ||

@@ -84,11 +84,16 @@ static inline CGroupMask CGROUP_MASK_EXTEND_JOINED(CGroupMask mask) {
 CGroupMask get_cpu_accounting_mask(void);
 bool cpu_accounting_is_cheap(void);
 
+#define CGROUP_CPU_IDLE UINT64_C(0)
+#define CGROUP_CPU_IDLE_STR "idle"
+
 /* Special values for all weight knobs on unified hierarchy */
 #define CGROUP_WEIGHT_INVALID UINT64_MAX
+#define CGROUP_WEIGHT_IDLE CGROUP_CPU_IDLE
 #define CGROUP_WEIGHT_MIN UINT64_C(1)
 #define CGROUP_WEIGHT_MAX UINT64_C(10000)
 #define CGROUP_WEIGHT_DEFAULT UINT64_C(100)
+#define CGROUP_WEIGHT_IDLE_STR CGROUP_CPU_IDLE_STR
 
 #define CGROUP_LIMIT_MIN UINT64_C(0)
 #define CGROUP_LIMIT_MAX UINT64_MAX
@@ -118,8 +123,10 @@ CGroupIOLimitType cgroup_io_limit_type_from_string(const char *s) _pure_;
 /* Special values for the cpu.shares attribute */
 #define CGROUP_CPU_SHARES_INVALID UINT64_MAX
 #define CGROUP_CPU_SHARES_MIN UINT64_C(2)
+#define CGROUP_CPU_SHARES_IDLE CGROUP_CPU_IDLE
 #define CGROUP_CPU_SHARES_MAX UINT64_C(262144)
 #define CGROUP_CPU_SHARES_DEFAULT UINT64_C(1024)
+#define CGROUP_CPU_SHARES_IDLE_STR CGROUP_CPU_IDLE_STR
 
 static inline bool CGROUP_CPU_SHARES_IS_OK(uint64_t x) {
         return

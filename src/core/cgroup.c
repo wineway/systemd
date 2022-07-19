@@ -945,6 +945,13 @@ static usec_t cgroup_cpu_adjust_period_and_log(Unit *u, usec_t period, usec_t qu
         return new_period;
 }
 
+static void cgroup_apply_unified_cpu_idle(Unit *u, uint64_t value) {
+        char buf[DECIMAL_STR_MAX(uint64_t) + 1];
+
+        xsprintf(buf, "%" PRIu64 "\n", value);
+        (void) set_attribute_and_warn(u, "cpu", "cpu.idle", buf);
+}
+
 static void cgroup_apply_unified_cpu_weight(Unit *u, uint64_t weight) {
         char buf[DECIMAL_STR_MAX(uint64_t) + 2];
 
@@ -987,11 +994,17 @@ static void cgroup_apply_legacy_cpu_quota(Unit *u, usec_t quota, usec_t period) 
 }
 
 static uint64_t cgroup_cpu_shares_to_weight(uint64_t shares) {
+        if (shares == CGROUP_CPU_SHARES_IDLE)
+                return CGROUP_WEIGHT_IDLE;
+
         return CLAMP(shares * CGROUP_WEIGHT_DEFAULT / CGROUP_CPU_SHARES_DEFAULT,
                      CGROUP_WEIGHT_MIN, CGROUP_WEIGHT_MAX);
 }
 
 static uint64_t cgroup_cpu_weight_to_shares(uint64_t weight) {
+        if (weight == CGROUP_CPU_SHARES_IDLE)
+                return CGROUP_CPU_SHARES_IDLE;
+
         return CLAMP(weight * CGROUP_CPU_SHARES_DEFAULT / CGROUP_WEIGHT_DEFAULT,
                      CGROUP_CPU_SHARES_MIN, CGROUP_CPU_SHARES_MAX);
 }
@@ -1399,7 +1412,10 @@ static void cgroup_context_apply(
                         } else
                                 weight = CGROUP_WEIGHT_DEFAULT;
 
-                        cgroup_apply_unified_cpu_weight(u, weight);
+                        if (weight == CGROUP_WEIGHT_IDLE)
+                                cgroup_apply_unified_cpu_idle(u, 1);
+                        else
+                                cgroup_apply_unified_cpu_weight(u, weight);
                         cgroup_apply_unified_cpu_quota(u, c->cpu_quota_per_sec_usec, c->cpu_quota_period_usec);
 
                 } else {
@@ -1418,7 +1434,10 @@ static void cgroup_context_apply(
                         else
                                 shares = CGROUP_CPU_SHARES_DEFAULT;
 
-                        cgroup_apply_legacy_cpu_shares(u, shares);
+                        if (shares == CGROUP_CPU_SHARES_IDLE)
+                                cgroup_apply_unified_cpu_idle(u, 1);
+                        else
+                                cgroup_apply_legacy_cpu_shares(u, shares);
                         cgroup_apply_legacy_cpu_quota(u, c->cpu_quota_per_sec_usec, c->cpu_quota_period_usec);
                 }
         }
